@@ -1,14 +1,41 @@
+--low level ax12 api
+--manages only basic set of ax12 instructions
 
------------ utils -----------
--- agregar al array en el orden
-function add(list, element)
-    list[#list+1] = element
+local serial = require("serial")
+
+--Atributos
+local ax12 ={
+	ttyFile = "/dev/ttyUSB0",
+	serial = nil
+}
+
+--Constructor
+function ax12:new (o)
+  o = o or {}   -- create object if user does not provide one
+  --OO cookbook
+  setmetatable(o, self)
+  self.__index = self
+  
+  --inicialización específica
+  o:init()
+  
+  return o
 end
 
 
------------ TTY level methods -----------
+--Inicialización
+function ax12:init()
+	if self.serial == nil  then 
+		--configurar librería serial
+		self.serial = serial:new({ttyFile = self.ttyFile})
+		self.serial:init()
+	end
+end
 
-function generarChecksum(paquete)
+
+----------- AX12 Packet level methods -----------
+
+function ax12:generarChecksum(paquete)
 	local checksum = 0
 	for i,v in ipairs(paquete) do
 		checksum = checksum + v
@@ -16,10 +43,10 @@ function generarChecksum(paquete)
 	return 255 - (math.fmod(checksum, 256))
 end
 
-function generarPaqueteAX12(paqueteEspecifico)
+function ax12:generarPaqueteAX12(paqueteEspecifico)
 	local packageStart = {0xFF,0xFF} -- 0xff 0xff inicio de paquete
-	local checksum = generarChecksum(paqueteEspecifico)
-	add(paqueteEspecifico,checksum)
+	local checksum = self:generarChecksum(paqueteEspecifico)
+	table.insert(paqueteEspecifico,checksum)
 	
 	local tempPaquete = ''
 	for i,v in ipairs(packageStart) do
@@ -31,33 +58,19 @@ function generarPaqueteAX12(paqueteEspecifico)
 	return tempPaquete
 end
 
---Writes 'what' to 'where'
-function writeToFile (where,what)
-	if sendComFile == nil  then 
-		sendComFile = io.open(where, 'w')
-		receiveComFile = io.open(where, 'r')
-		receiveComFile:flush()
-	end
-	sendComFile:write(what)
-	sendComFile:flush()	
-end
-
-function readFromFile() 
-	if receiveComFile==nil then
-		receiveComFile = io.open(comPort, 'r')
-	end
+function ax12:readAx12Packet()
 	local fileString = ""
 	--se leen los primeros 2 caracteres, tienen que ser 0xFF 0xFF
-	local char = receiveComFile:read(1)
+	local char = self.serial:read(1)
 	if string.byte(char) == 0xFF then
 		fileString = fileString .. char
-		char = receiveComFile:read(1)
+		char = self.serial:read(1)
 		if string.byte(char) == 0xFF then
 			fileString = fileString .. char
 			--leo 2 chars, el primero es el id, el otro el largo
-			char = receiveComFile:read(2)
+			char = self.serial:read(2)
 			fileString = fileString .. char
-			char = receiveComFile:read(string.byte(char,2) )
+			char = self.serial:read(string.byte(char,2) )
 			fileString = fileString .. char
 			print("respuesta id: " ..  string.byte(fileString,3) .. " error: " .. string.byte(fileString,5) )
 		end		
@@ -65,7 +78,6 @@ function readFromFile()
 	
 	return fileString
 end
-
 
 ----------- AX12 methods -----------
 
@@ -79,14 +91,14 @@ local INSTRUCTION_ACTION = 0x05
 local INSTRUCTION_RESET = 0x06
 local INSTRUCTION_SYNC_WRITE = 0x83
 
-function ping(id)
+function ax12:ping(id)
 	id = id or BROADCAST_ID
 	local paquetePing = {id,0x02,INSTRUCTION_PING} 
-	local paqueteGenerado=generarPaqueteAX12(paquetePing)
-	writeToFile (comPort,paqueteGenerado)
+	local paqueteGenerado= self:generarPaqueteAX12(paquetePing)
+	self.serial:write(paqueteGenerado)
 	if id ~= BROADCAST_ID then
 		print("antes de leer")
-		local val = readFromFile()
+		local val = self:readAx12Packet()
 		print("despues de leer")
 		return val
 	end
@@ -94,27 +106,27 @@ end
 
 --id, address, enteros entre 0 y 255
 --data, tabla con valores a enviar
-function writeData(id,address,data)
+function ax12:writeData(id,address,data)
 	id = id or BROADCAST_ID
 	local paqueteWrite = {id,#data+3,INSTRUCTION_WRITE_DATA,address} 
 	for _,v in ipairs(data) do
-		add(paqueteWrite,v)
+		table.insert(paqueteWrite,v)
 	end
 	printArray(paqueteWrite)
 	local paqueteGenerado=generarPaqueteAX12(paqueteWrite)
-	writeToFile (comPort,paqueteGenerado)
+	self.serial:write(paqueteGenerado)
 	if id ~= BROADCAST_ID then
-		local val = readFromFile()
+		local val = self:readAx12Packet()
 		return val
 	end
 end
 
 --id, startAddress, length enteros entre 0 y 255
-function readData(id,startAddress,length)
+function ax12:readData(id,startAddress,length)
 	local paqueteRead = {id,4,INSTRUCTION_READ_DATA,startAddress,length} 
-	local paqueteGenerado=generarPaqueteAX12(paqueteRead)
-	writeToFile (comPort,paqueteGenerado)
-	local val = readFromFile()
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteRead)
+	self.serial:write(paqueteGenerado)
+	local val = self:readAx12Packet()
 	
 	for i = 6, length+5 do
 		print("byte " .. i .. " " .. string.byte(string.sub(val,i,i)))
@@ -122,54 +134,12 @@ function readData(id,startAddress,length)
 	return val
 end
 
-function printArray(array) 
+local function printArray(array) 
 	for _,v in ipairs(array) do
 		print(v)
 	end
 end
 
------------ AX12 high level methods -----------
 
-
-
-function prendeLed(id)
-	id = id or BROADCAST_ID
-	local paquetePrenderLed = {id,0x04,0x03,0x19,0x01} -- 0xFE = ID BROADCAST, 0x04 = LENGTH, 0x03 = ESCRIBIR
-	local paqueteGenerado=generarPaqueteAX12(paquetePrenderLed)
-	writeToFile (comPort,paqueteGenerado)
-end
-
-function apagaLed(id)
-	id = id or 0xfe
-	local paqueteApagaLed = {id,0x04,0x03,0x19,0x00} 
-	local paqueteGenerado=generarPaqueteAX12(paqueteApagaLed)
-	writeToFile (comPort,paqueteGenerado)
-end
-
-function getId()
---mandamos mensaje de broadcast prguntando por el id
---se asume que solo un motor esta conectado
-	local paqueteGetId= {0xFE,0x04,0x02,0x03,0x01} -- 0xFE = ID BROADCAST, 0x04 = LENGTH, 0x02 = LEER, 0x03 = ID, 0x01 = 1BYTE
-	local paqueteGenerado=generarPaqueteAX12(paqueteGetId)
-	writeToFile (comPort,paqueteGenerado)
-	--TODO leer lo que volvio!
-
-end
-
-
-function setId(id)
---se asume que solo un motor esta conectado	
-	local paqueteSetId= {0xFE,0x04,0x03,0x03,id} 
-	local paqueteGenerado=generarPaqueteAX12(paqueteSetId)
-	writeToFile (comPort,paqueteGenerado)
-end
-
-function getSpeed()
-
-end
-
-function setSpeed()
-
-end
 
 

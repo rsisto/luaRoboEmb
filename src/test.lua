@@ -1,11 +1,8 @@
 require("ax12")
 
 -- Defino las constantes para enviar motor AX12 en el puerto serial.
-comPort = '/dev/ttyUSB0'
-local speed = 1000000
-local initSerialportString ='stty -F ' .. comPort .. ' ' .. speed .. ' ' .. '-parenb -parodd cs8 hupcl -cstopb cread -clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel -iutf8 -opost -olcuc -ocrnl -onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke'
-print("configurando tty: " .. initSerialportString)
-os.execute(initSerialportString)
+
+
 
 
 local id = 0x03
