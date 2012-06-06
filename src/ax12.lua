@@ -9,6 +9,9 @@ local ax12 ={
 	serial = nil
 }
 
+--ax12.debugprint = print --for debug
+ax12.debugprint = function() end  --do not print anything by default
+
 --Constructor
 function ax12:new (o)
   o = o or {}   -- create object if user does not provide one
@@ -32,6 +35,12 @@ function ax12:init()
 	end
 end
 
+--métodos privados
+local function printArray(array) 
+	for _,v in ipairs(array) do
+		ax12.debugprint(v)
+	end
+end
 
 ----------- AX12 Packet level methods -----------
 
@@ -72,7 +81,7 @@ function ax12:readAx12Packet()
 			fileString = fileString .. char
 			char = self.serial:read(string.byte(char,2) )
 			fileString = fileString .. char
-			print("respuesta id: " ..  string.byte(fileString,3) .. " error: " .. string.byte(fileString,5) )
+			ax12.debugprint("respuesta id: " ..  string.byte(fileString,3) .. " error: " .. string.byte(fileString,5) )
 		end		
 	end
 	
@@ -97,15 +106,17 @@ function ax12:ping(id)
 	local paqueteGenerado= self:generarPaqueteAX12(paquetePing)
 	self.serial:write(paqueteGenerado)
 	if id ~= BROADCAST_ID then
-		print("antes de leer")
+		ax12.debugprint("antes de leer")
 		local val = self:readAx12Packet()
-		print("despues de leer")
-		return val
+		ax12.debugprint("despues de leer")
+		--Returns only the error byte
+		return string.byte(string.sub(val,5,5))
 	end
 end
 
 --id, address, enteros entre 0 y 255
 --data, tabla con valores a enviar
+--retorna el byte de error del paquete
 function ax12:writeData(id,address,data)
 	id = id or BROADCAST_ID
 	local paqueteWrite = {id,#data+3,INSTRUCTION_WRITE_DATA,address} 
@@ -113,11 +124,12 @@ function ax12:writeData(id,address,data)
 		table.insert(paqueteWrite,v)
 	end
 	printArray(paqueteWrite)
-	local paqueteGenerado=generarPaqueteAX12(paqueteWrite)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteWrite)
 	self.serial:write(paqueteGenerado)
 	if id ~= BROADCAST_ID then
 		local val = self:readAx12Packet()
-		return val
+		--Returns only the error byte
+		return string.byte(string.sub(val,5,5))
 	end
 end
 
@@ -127,19 +139,18 @@ function ax12:readData(id,startAddress,length)
 	local paqueteGenerado=self:generarPaqueteAX12(paqueteRead)
 	self.serial:write(paqueteGenerado)
 	local val = self:readAx12Packet()
-	
-	for i = 6, length+5 do
-		print("byte " .. i .. " " .. string.byte(string.sub(val,i,i)))
+	local readData = {}
+	local errorVal = string.byte(string.sub(val,5,5))
+	for i = 6, length+5 do		
+		readData[i-5]=string.byte(string.sub(val,i,i)) 
 	end
-	return val
+	return readData , errorVal
 end
 
-local function printArray(array) 
-	for _,v in ipairs(array) do
-		print(v)
-	end
-end
+--TODO: implementar instrucciones:  INSTRUCTION_REG_WRITE, INSTRUCTION_ACTION, INSTRUCTION_RESET, INSTRUCTION_SYNC_WRITE
+ 
 
 
+return ax12
 
 

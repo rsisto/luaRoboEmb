@@ -6,6 +6,9 @@ local serial ={ttyFile = "/dev/ttyUSB0" ,
 	ttyParams='-parenb -parodd cs8 hupcl -cstopb cread -clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel -iutf8 -opost -olcuc -ocrnl -onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke'
 }
 
+--serial.debugprint = print --for debug
+serial.debugprint = function() end  --do not print anything by default
+
 --Constructor
 function serial:new (o)
   o = o or {}   -- create object if user does not provide one
@@ -24,7 +27,7 @@ function serial:init()
 	if self.sendComFile == nil  then 
 		--configurar puerto serial
 		local initSerialportString ='stty -F ' .. self.ttyFile .. ' ' .. self.speed .. ' ' .. self.ttyParams
-		print("configurando tty: " .. initSerialportString)
+		serial.debugprint("configurando tty: " .. initSerialportString)
 		os.execute(initSerialportString)
 
 		--inicializar archivos para envío y recepción.

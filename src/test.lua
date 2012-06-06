@@ -7,8 +7,6 @@ require("ax12")
 
 local id = 0x03
 
---Set continuous rotation
---writeData(id,0x06,{0x00,0x00,0x00,0x00})
 
 --Frenar
 writeData(id,0x20,{0x00,0x00})
@@ -24,7 +22,7 @@ writeData(id,0x20,{0x00,0x00})
 --readData(id,0x26,2)
 
 while 1 do
-	readData(id,0x24,2)
+	
 	os.execute("sleep 0.5")
 end
 
