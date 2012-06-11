@@ -101,15 +101,34 @@ function ax12motor:getCurrentVoltage()
 	return volt
 end
 
---TODO
 function ax12motor:getMaxTorque()
-end
-function ax12motor:setMaxTorque(torque)
-end
-function ax12motor:getPosition()
-	--readData(id,0x24,2)
+	local maxTorqueArray , err = self.ax12:readData(self.motor_id,0x0E,2)
+	-- TODO checkear como esta esto
+	local b1 = maxTorqueArray[1]
+	local b2 = maxTorqueArray[2]
+	ax12motor.debugprint("getMaxTorque " .. b1 .." " .. b2)
+	local maxTorque = "TODO"
+	return maxTorque
 end
 
+function ax12motor:setMaxTorque(torque)
+	-- TODO checkear como esta esto
+	local b1 = math.abs(torque) % 256
+	local b2 = math.floor(math.abs(torque) / 256)
+
+	ax12motor.debugprint("setSpeed " .. b1 .." " .. b2)
+	self.ax12:writeData(self.motor_id,0x0E,{b1,b2})
+end
+
+function ax12motor:getPosition()
+	local positionArray , err = self.ax12:readData(self.motor_id,0x24,2)
+	-- TODO checkear como esta esto
+	local b1 = positionArray[1]
+	local b2 = positionArray[2]
+	ax12motor.debugprint("getPosition " .. b1 .." " .. b2)
+	local position = "TODO"
+	return position
+end
 
 
 return ax12motor
