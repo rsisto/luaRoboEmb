@@ -147,9 +147,41 @@ function ax12:readData(id,startAddress,length)
 	return readData , errorVal
 end
 
---TODO: implementar instrucciones:  INSTRUCTION_REG_WRITE, INSTRUCTION_ACTION, INSTRUCTION_RESET, INSTRUCTION_SYNC_WRITE
- 
+ function ax12:regWriteData(id,address,data)
+	id = id or BROADCAST_ID
+	local paqueteRegWrite = {id,#data+3,INSTRUCTION_REG_WRITE,address} 
+	for _,v in ipairs(data) do
+		table.insert(v,v)
+	end
+	printArray(paqueteRegWrite)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteRegWrite)
+	self.serial:write(paqueteGenerado)
+	--TODO no tenemos que mandar un read despues?asumo que no...
+end
 
+ function ax12:action()
+	local paqueteAction = {BROADCAST_ID,0x02,INSTRUCTION_ACTION} 
+	printArray(paqueteAction)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteAction)
+	self.serial:write(paqueteGenerado)	
+	-- no return package
+end
+
+ function ax12:reset()
+	local paqueteReset = {0x00,0x02,INSTRUCTION_RESET} 
+	printArray(paqueteReset)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteReset)
+	self.serial:write(paqueteGenerado)
+	
+	--consumimos return package
+	ax12.debugprint("antes de leer")
+	local val = self:readAx12Packet()
+	ax12.debugprint("despues de leer")
+	--Returns only the error byte
+	return string.byte(string.sub(val,5,5))
+end
+
+--TODO: implementar instrucciones: INSTRUCTION_SYNC_WRITE
 
 return ax12
 
