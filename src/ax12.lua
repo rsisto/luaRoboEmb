@@ -181,6 +181,16 @@ end
 	return string.byte(string.sub(val,5,5))
 end
 
+ function ax12:syncWrite(address,data)
+	-- en este caso la tabla data contiene toda la informacion a escribir 
+	local paqueteRegWrite = {BROADCAST_ID,#data,INSTRUCTION_SYNC_WRITE,address} 
+	for _,v in ipairs(data) do
+		table.insert(v,v)
+	end
+	printArray(paqueteRegWrite)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteRegWrite)
+	self.serial:write(paqueteGenerado)
+end
 --TODO: implementar instrucciones: INSTRUCTION_SYNC_WRITE
 
 return ax12
