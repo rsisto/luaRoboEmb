@@ -147,51 +147,72 @@ function ax12:readData(id,startAddress,length)
 	return readData , errorVal
 end
 
- function ax12:regWriteData(id,address,data)
+--Registers a write to a motor, the actual write takes place after an action message.
+function ax12:regWriteData(id,address,data)
 	id = id or BROADCAST_ID
 	local paqueteRegWrite = {id,#data+3,INSTRUCTION_REG_WRITE,address} 
 	for _,v in ipairs(data) do
-		table.insert(v,v)
+		table.insert(paqueteRegWrite,v)
 	end
 	printArray(paqueteRegWrite)
 	local paqueteGenerado=self:generarPaqueteAX12(paqueteRegWrite)
 	self.serial:write(paqueteGenerado)
-	--TODO no tenemos que mandar un read despues?asumo que no...
+	if id ~= BROADCAST_ID then
+		local val = self:readAx12Packet()
+		--Returns only the error byte
+		return string.byte(string.sub(val,5,5))
+	end
 end
 
- function ax12:action()
-	local paqueteAction = {BROADCAST_ID,0x02,INSTRUCTION_ACTION} 
+--Executes the previous registered reg_write on the motors.
+function ax12:action(id)
+	id = id or BROADCAST_ID
+	local paqueteAction = {id,0x02,INSTRUCTION_ACTION} 
 	printArray(paqueteAction)
 	local paqueteGenerado=self:generarPaqueteAX12(paqueteAction)
 	self.serial:write(paqueteGenerado)	
-	-- no return package
+	if id ~= BROADCAST_ID then
+		local val = self:readAx12Packet()
+		--Returns only the error byte
+		return string.byte(string.sub(val,5,5))
+	end
 end
 
- function ax12:reset()
+--Resets motor to factory defaults
+function ax12:reset(id)
+	id = id or BROADCAST_ID
 	local paqueteReset = {0x00,0x02,INSTRUCTION_RESET} 
 	printArray(paqueteReset)
 	local paqueteGenerado=self:generarPaqueteAX12(paqueteReset)
 	self.serial:write(paqueteGenerado)
-	
-	--consumimos return package
-	ax12.debugprint("antes de leer")
-	local val = self:readAx12Packet()
-	ax12.debugprint("despues de leer")
-	--Returns only the error byte
-	return string.byte(string.sub(val,5,5))
+	if id ~= BROADCAST_ID then
+		local val = self:readAx12Packet()
+		--Returns only the error byte
+		return string.byte(string.sub(val,5,5))
+	end
 end
 
- function ax12:syncWrite(address,data)
+--Used for controlling many Dynamixel actuators at the same time. The communication
+--time decreases by the Synch Write instruction since many instructions can be
+--transmitted by a single instruction. However, you can use this instruction only when the
+--lengths and addresses of the control table to be written to are the same. Also, the
+--broadcasting ID needs to be used for transmitting.
+--
+--write_data table -> {{id,data}...}
+function ax12:syncWrite(address,write_data)
 	-- en este caso la tabla data contiene toda la informacion a escribir 
-	local paqueteRegWrite = {BROADCAST_ID,#data,INSTRUCTION_SYNC_WRITE,address} 
-	for _,v in ipairs(data) do
-		table.insert(v,v)
+	local paqueteSyncWrite = {BROADCAST_ID,(#data)*(#data[1].write_data 	+ 1) + 4,INSTRUCTION_SYNC_WRITE,address} 
+	for _,v in ipairs(write_data) do
+		table.insert(paqueteSyncWrite,v.id)
+		for _,data in ipairs(v.data) do
+			table.insert(paqueteSyncWrite,data)
+		end
 	end
-	printArray(paqueteRegWrite)
-	local paqueteGenerado=self:generarPaqueteAX12(paqueteRegWrite)
+	printArray(paqueteSyncWrite)
+	local paqueteGenerado=self:generarPaqueteAX12(paqueteSyncWrite)
 	self.serial:write(paqueteGenerado)
 end
---TODO: implementar instrucciones: INSTRUCTION_SYNC_WRITE
+
 
 return ax12
 

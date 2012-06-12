@@ -26,6 +26,7 @@ end
 
 --Inicialización
 function ax12motor:init()
+	--ax12 es una 'variable de clase'
 	if ax12motor.ax12 == nil  then 
 		--configurar librería serial
 		ax12motor.ax12 = ax12api:new({ttyFile=ttyFile})
@@ -70,6 +71,7 @@ function ax12motor:getSpeed()
 	return vel
 end
 
+--MAX_VEL = 1023
 function ax12motor:setSpeed(vel)
 	local b1 = math.abs(vel) % 256
 	local b2 = math.floor(math.abs(vel) / 256)
@@ -128,6 +130,26 @@ function ax12motor:getPosition()
 	ax12motor.debugprint("getPosition " .. b1 .." " .. b2)
 	local position = "TODO"
 	return position
+end
+
+--speeds, array of {id,speed}
+--speed is between -1023,1023
+--A syncWrite is sent to all involved motors.
+function ax12motor.setMultipleSpeeds(speeds)
+	syncWritePackage = {}
+	for _,speed in ipairs(speeds) do 
+		local vel = speed.speed
+		local id = speed.id
+		local b1 = math.abs(vel) % 256
+		local b2 = math.floor(math.abs(vel) / 256)
+		if b2 > 3 then b2 = 3 end
+		if vel < 0 then
+			b2 = b2 + 4
+		end
+		ax12motor.debugprint("syncWrite speed" .. b1 .." " .. b2 .. " id:"..id)
+		table.insert(syncWritePackage,{id=id,data={b1,b2}})
+	end
+	ax12motor.ax12:syncWrite(0x20,syncWritePackage)
 end
 
 
