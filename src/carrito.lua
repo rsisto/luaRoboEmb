@@ -53,6 +53,11 @@ function carrito:right(speed)
 	self.motor_right:setSpeed(speed)
 end
 
+function carrito:setVels(left,right)
+	self.motor_left:setSpeed(left)
+	self.motor_right:setSpeed(-right)
+end
+
 function carrito:prenderLuces(val)
 	self.motor_left:setLedValue(val)
 	self.motor_right:setLedValue(val)
