@@ -139,7 +139,7 @@ function sendSpeeds()
 end
 
 
-
+--Init threads
 f= lanes.gen( "*", keypadRead)()
 f2= lanes.gen( "*", sendSpeeds)()
 
