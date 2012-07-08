@@ -1,0 +1,5 @@
+local carritoAPI = require("carrito")
+local carrito = carritoAPI:new()
+carrito:prenderLuces(1)
+os.execute("sleep 1")
+carrito:prenderLuces(0)
