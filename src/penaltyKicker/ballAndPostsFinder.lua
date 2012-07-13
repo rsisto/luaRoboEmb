@@ -74,7 +74,11 @@ function selectBallAndPosts(img,w,h,colorRef)
 	return hueimg
 end
 
---return ball position in percentage. or nil 
+--return ball position in percentage. 
+--3 return cases:
+-- ball found: ball_pos, distance
+-- something similar found: nil, something_pos
+-- nothing found: nil
 function getBallPosition(histBall,threshold) 
 	local x_min , x_max = nil
 	local x_something =nil -- x of any position with histBall[i] > 0 
@@ -110,6 +114,10 @@ function getBallPosition(histBall,threshold)
 end
 
 --returns posts positions or nils
+--3 return cases:
+-- both posts found: left_post_pos, right_post_pos
+-- One post found: post_pos
+-- No post found: nil
 function getPostsPositions(histPost,threshold) 
 	local left_min , left_max , right_min , right_max = nil
 	local inPost = false

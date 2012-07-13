@@ -9,8 +9,8 @@ local carrito ={
 	motores_id={3,14}
 }
 
-carrito.debugprint = print --for debug
---carrito.debugprint = function() end  --do not print anything by default
+--carrito.debugprint = print --for debug
+carrito.debugprint = function() end  --do not print anything by default
 
 
 --Constructor

@@ -9,8 +9,8 @@ local ax12 ={
 	serial = nil
 }
 
-ax12.debugprint = print --for debug
---ax12.debugprint = function() end  --do not print anything by default
+--ax12.debugprint = print --for debug
+ax12.debugprint = function() end  --do not print anything by default
 
 --Constructor
 function ax12:new (o)

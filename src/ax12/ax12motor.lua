@@ -8,8 +8,8 @@ local ax12motor ={
 	motor_id=nil
 }
 
-ax12motor.debugprint = print --for debug
---ax12motor.debugprint = function() end  --do not print anything by default
+--ax12motor.debugprint = print --for debug
+ax12motor.debugprint = function() end  --do not print anything by default
 
 
 --Constructor
