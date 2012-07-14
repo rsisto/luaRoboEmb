@@ -9,8 +9,12 @@ require "socket"
 require "v4lCommon"
 
 local arbitratorAPI = require("arbitrator")
+
 local ballFinderBehaviorAPI = require("ballFinderBehavior")
+local getNearBallBehaviorAPI = require("getNearBallBehavior")
+local circleBallBehaviorAPI = require("circleBallBehavior")
 local ballKickerBehaviorAPI = require("ballKickerBehavior")
+local stopAtBallBehaviorAPI = require("stopAtBallBehavior")
 
 local carritoAPI = require("carrito")
 
@@ -69,10 +73,14 @@ print("Motor voltage: " .. carrito.motor_left:getCurrentVoltage())
 
 --create behaviors (pass sensorData and robot as arguments)
 local finderBehavior = ballFinderBehaviorAPI:new({sensorData=sensorData,robot=carrito})
+local getNearBallBehavior = getNearBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
+local ballDanceBehavior = circleBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 local kickerBehavior = ballKickerBehaviorAPI:new({sensorData=sensorData,robot=carrito})
+local stopperBehavior = stopAtBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 
 --Construct a priority behaviour Array
-local behaviourArray = {kickerBehavior,finderBehavior}
+--local behaviourArray = {kickerBehavior,ballDanceBehavior,getNearBallBehavior,finderBehavior}
+local behaviourArray = {stopperBehavior,finderBehavior}
 
 --Get an arbitrator instance and pass the priority Behaviour Array
 local arbitrator = arbitratorAPI:new({behaviourArray=behaviourArray})

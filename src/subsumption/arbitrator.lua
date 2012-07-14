@@ -83,7 +83,7 @@ function arbitrator:chooseActiveBehaviour()
 			--A lower priority behaviour than the actuaBehaviour wants the control
 			
 			--notify actual Behaviour with a supress call
-			self.activeBehaviour[1]:supress()
+			--self.activeBehaviour[1]:supress()
 			
 			--set new actual behaviour
 			self.activeBehaviour = {self.behaviourArray[prioritySelection],prioritySelection}

@@ -4,7 +4,7 @@ local getNearBallBehavior ={
 	name = 'getNearBallBehavior',
 	sensorData = nil, --global sensor data
 	robot = nil	, --robot control
-	robotSpeed = 400, -- rotation speed to search for ball
+	robotSpeed = 400 -- rotation speed to search for ball
 }
 
 getNearBallBehavior.debugprint = print --for debug
@@ -27,15 +27,24 @@ end
 -- step inside a behaviour (it must make a little step and return quickly)
 function getNearBallBehavior:actionStep()
 	--little step to make the behaviour's goal
-	getNearBallBehavior.debugprint('getNearBallBehavior:actionStep()')
-	
-	self.robot:forward(self.robotSpeed)
+	local ballAngleFromCenter = self.sensorData.ball[1] - 50
+	local speedDecrease = math.floor (math.abs(ballAngleFromCenter*self.robotSpeed)/50)
+	local speed_left, speed_right
+	if ballAngleFromCenter < 0 then
+		--ball is to the left
+		speed_left, speed_right = self.robotSpeed-speedDecrease , self.robotSpeed
+	elseif ballAngleFromCenter > 0 then
+		--ball is to the right
+		speed_left, speed_right = self.robotSpeed , self.robotSpeed -speedDecrease
+	end
+	self.robot:setVels(speed_left, speed_right)
+	getNearBallBehavior.debugprint('getNearBallBehavior:actionStep() speed: ' .. speed_left .. ' ' .. speed_right)
 end
 
 -- returns if this behaviour wants the control of the robot 
 function getNearBallBehavior:takeControl()
 	--return true to the arbitrator if the conditions are met, false if not.
-	if self.sensorData.ball or self.sensorData.ball_hint then
+	if self.sensorData.ball then
 		return true
 	end
 	return false
