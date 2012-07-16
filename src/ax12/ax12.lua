@@ -201,7 +201,9 @@ end
 --write_data table -> {{id,data}...}
 function ax12:syncWrite(address,write_data)
 	-- en este caso la tabla data contiene toda la informacion a escribir 
-	local paqueteSyncWrite = {BROADCAST_ID,(#data)*(#data[1].write_data 	+ 1) + 4,INSTRUCTION_SYNC_WRITE,address} 
+  local length1 = #write_data
+  local length = (length1)*(#write_data[1].data 	+ 1) + 4
+  local paqueteSyncWrite = {BROADCAST_ID,length,INSTRUCTION_SYNC_WRITE,address} 
 	for _,v in ipairs(write_data) do
 		table.insert(paqueteSyncWrite,v.id)
 		for _,data in ipairs(v.data) do

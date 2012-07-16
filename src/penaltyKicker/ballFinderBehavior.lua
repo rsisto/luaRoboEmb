@@ -5,7 +5,7 @@ local ballFinderBehavior ={
 	sensorData = nil, --global sensor data
 	robot = nil	, --robot control
 	direction = 'cw', -- rotating direction ('cw','ccw')
-	rotationSpeed = 400 -- rotation speed to search for ball
+	rotationSpeed = 200 -- rotation speed to search for ball
 }
 
 ballFinderBehavior.debugprint = print --for debug
@@ -29,7 +29,7 @@ end
 function ballFinderBehavior:actionStep()
 	--little step to make the behaviour's goal
 	ballFinderBehavior.debugprint('ballFinderBehavior:actionStep() - '..self.direction)
-	if self.direction == 'cw' then
+	if self.sensorData.direction == 'cw' then
 		self.robot:right(self.rotationSpeed)
 	else
 		self.robot:left(self.rotationSpeed)
@@ -45,13 +45,12 @@ end
 
 -- This function is called by the arbitrator when this behaviour is suppresed
 function ballFinderBehavior:supress()
-	--[[
-	if self.direction == 'cw' then
-		self.direction = 'ccw'
+	
+	if self.sensorData.direction == 'cw' then
+		self.sensorData.direction = 'ccw'
 	else
-		self.direction = 'cw'
+		self.sensorData.direction = 'cw'
 	end
-	--]]
 end
 
 function ballFinderBehavior:getBehaviourName()

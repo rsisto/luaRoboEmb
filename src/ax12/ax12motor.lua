@@ -135,6 +135,7 @@ end
 --A syncWrite is sent to all involved motors.
 function ax12motor.setMultipleSpeeds(speeds)
 	syncWritePackage = {}
+  ax12motor.debugprint("speeds " .. #speeds)
 	for _,speed in ipairs(speeds) do 
 		local vel = speed.speed
 		local id = speed.id
@@ -144,8 +145,9 @@ function ax12motor.setMultipleSpeeds(speeds)
 		if vel < 0 then
 			b2 = b2 + 4
 		end
-		ax12motor.debugprint("syncWrite speed" .. b1 .." " .. b2 .. " id:"..id)
+		ax12motor.debugprint("syncWrite speed " .. b1 .." " .. b2 .. " id:"..id)
 		table.insert(syncWritePackage,{id=id,data={b1,b2}})
+    
 	end
 	ax12motor.ax12:syncWrite(0x20,syncWritePackage)
 end

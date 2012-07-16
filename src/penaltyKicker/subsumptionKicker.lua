@@ -15,6 +15,7 @@ local getNearBallBehaviorAPI = require("getNearBallBehavior")
 local circleBallBehaviorAPI = require("circleBallBehavior")
 local ballKickerBehaviorAPI = require("ballKickerBehavior")
 local stopAtBallBehaviorAPI = require("stopAtBallBehavior")
+local ballCenterBehaviorAPI = require("ballCenterBehavior")
 
 local carritoAPI = require("carrito")
 
@@ -34,7 +35,8 @@ w, h = v4l.widht(), v4l.height()
 local sensorData = {
 	ball=nil, -- ball position and distance
 	ball_hint=nil, -- ball hint position (when the ball is not found, but there are some pixels similar to it)
-	posts={} -- posts position {left,right}, {one_post} or {} (no post found)
+	posts={} ,-- posts position {left,right}, {one_post} or {} (no post found)
+  direction = 'cw'
 }
 
 function sense()
@@ -75,12 +77,13 @@ print("Motor voltage: " .. carrito.motor_left:getCurrentVoltage())
 local finderBehavior = ballFinderBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 local getNearBallBehavior = getNearBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 local ballDanceBehavior = circleBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
+local ballCenterBehavior = ballCenterBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 local kickerBehavior = ballKickerBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 local stopperBehavior = stopAtBallBehaviorAPI:new({sensorData=sensorData,robot=carrito})
 
 --Construct a priority behaviour Array
 --local behaviourArray = {kickerBehavior,ballDanceBehavior,getNearBallBehavior,finderBehavior}
-local behaviourArray = {stopperBehavior,finderBehavior}
+local behaviourArray = {kickerBehavior,ballCenterBehavior,ballDanceBehavior,getNearBallBehavior,finderBehavior}
 
 --Get an arbitrator instance and pass the priority Behaviour Array
 local arbitrator = arbitratorAPI:new({behaviourArray=behaviourArray})

@@ -36,27 +36,56 @@ function carrito:init()
 	end	
 end
 
+
 function carrito:forward(speed)
-	self.motor_left:setSpeed(speed)
-	self.motor_right:setSpeed(-speed)
+self.motor_left:setSpeed(speed)
+self.motor_right:setSpeed(-speed)
 end
 function carrito:backward(speed)
-	self.motor_left:setSpeed(-speed)
-	self.motor_right:setSpeed(speed)
+self.motor_left:setSpeed(-speed)
+self.motor_right:setSpeed(speed)
 end
 function carrito:left(speed)
-	self.motor_left:setSpeed(-speed)
-	self.motor_right:setSpeed(-speed)
+self.motor_left:setSpeed(-speed)
+self.motor_right:setSpeed(-speed)
 end
 function carrito:right(speed)
-	self.motor_left:setSpeed(speed)
-	self.motor_right:setSpeed(speed)
+self.motor_left:setSpeed(speed)
+self.motor_right:setSpeed(speed)
 end
 
 function carrito:setVels(left,right)
-	self.motor_left:setSpeed(left)
-	self.motor_right:setSpeed(-right)
+self.motor_left:setSpeed(left)
+self.motor_right:setSpeed(-right)
 end
+--[[
+function carrito:forward(speed)
+  motores.setMultipleSpeeds({
+    {id=self.motores_id[1],speed=speed},
+    {id=self.motores_id[2],speed=-speed}})
+end
+function carrito:backward(speed)
+  motores.setMultipleSpeeds({
+    {id=self.motores_id[1],speed=-speed},
+    {id=self.motores_id[2],speed=speed}})
+end
+function carrito:left(speed)
+  motores.setMultipleSpeeds({
+    {id=self.motores_id[1],speed=-speed},
+    {id=self.motores_id[2],speed=-speed}})
+end
+function carrito:right(speed)
+  motores.setMultipleSpeeds({
+    {id=self.motores_id[1],speed=speed},
+    {id=self.motores_id[2],speed=speed}})
+end
+
+function carrito:setVels(left,right)
+  motores.setMultipleSpeeds({
+    {id=self.motores_id[1],speed=left},
+    {id=self.motores_id[2],speed=-right}})
+end
+--]]
 
 function carrito:prenderLuces(val)
 	self.motor_left:setLedValue(val)

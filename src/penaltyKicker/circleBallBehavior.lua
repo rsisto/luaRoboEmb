@@ -31,13 +31,19 @@ end
 
 
 function circleBallBehavior:init()
-  --Calculate the approximate time (in miliseconds) the robot needs to turn to turn turnDegrees degrees
+  
   --calculated at 8,8V, speed:400
-  local msPerWholeTurn = 12000 --TODO calcular. Desprolijo pero efectivo (TODO: debería estar en función de rad/sec de motor, radio de rueda, diámetro de robot)
-  self.timeToTurn = (msPerWholeTurn*self.turnDegrees)/360
+  --local msPerWholeTurn = 12000 --TODO calcular. Desprolijo pero efectivo (TODO: debería estar en función de rad/sec de motor, radio de rueda, diámetro de robot)
+  --local msPerMeter = 24000 --TODO calcular. Desprolijo pero efectivo (TODO: debería estar en función de rad/sec de motor, radio de rueda, diámetro de robot)
+  
+  --calcluated at 9.6v, speed: 400
+  local msPerWholeTurn = 8000 
+  local msPerMeter = 20000 
+  
 
+  --Calculate the approximate time (in miliseconds) the robot needs to turn to turn turnDegrees degrees
+  self.timeToTurn = (msPerWholeTurn*self.turnDegrees)/360
   --Calculate the approximate time (in miliseconds) the robot needs to go forward forwardDistance centimeters
-  local msPerMeter = 24000 --TODO calcular. Desprolijo pero efectivo (TODO: debería estar en función de rad/sec de motor, radio de rueda, diámetro de robot)
   self.timeToGoForward = (msPerMeter*self.forwardDistance)/100
   circleBallBehavior.debugprint("circleBallBehavior: ttForward " ..self.timeToGoForward .. " ttTurn " ..  self.timeToTurn)
   
@@ -56,7 +62,7 @@ function circleBallBehavior:actionStep()
     circleBallBehavior.debugprint('circleBallBehavior:actionStep() - go Forward!')
     self.robot:forward(self.robotSpeed)
   end
-
+  self.sensorData.direction = 'cw'
 end
 
 -- returns if this behaviour wants the control of the robot
